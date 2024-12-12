@@ -40,8 +40,7 @@
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Update Blog</button>
+    
     </form>
 </main>
-@endsection
-
 @endsection

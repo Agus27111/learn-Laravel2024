@@ -12,6 +12,10 @@
         </a>
     </div>
 
+    <form action="/blogs" method="get">
+        <input type="text" name="search" placeholder="Search..." value="{{ request('search') }}" class="form-control">
+    </form>
+
 
     <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
 @foreach ($blogs as $blog)
@@ -28,5 +32,8 @@
       </div>
         @endforeach
     </div>
-  </div>
+    <!-- Pagination -->
+    {{ $blogs->links() }}
+
+</div>
 @endsection

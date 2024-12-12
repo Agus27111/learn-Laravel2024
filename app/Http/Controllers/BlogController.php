@@ -7,12 +7,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
+
 class BlogController extends Controller
 {
     // Menampilkan daftar blog
-    public function index()
+    public function index(Request $request)
     {
-        $blogs = Blog::all();
+        $search = $request->search;
+
+        if ($search) {
+            $blogs = DB::table('blogs')->where('title', 'like', "%{$search}%")->paginate(3);
+        } else {
+            $blogs = DB::table('blogs')->paginate(3);
+        }
         return view('blog.index', compact('blogs'));
     }
 
@@ -43,36 +50,56 @@ class BlogController extends Controller
     public function show($id)
     {
         $blog = DB::table('blogs')->where('id',$id)->first();
+
+        if (!$blog) {
+            abort(404, 'Blog not found');
+        }
+
         return view('blog.show', ['blog'=> $blog]);
     }
 
     // Menampilkan form untuk mengedit blog
-    public function edit(Blog $blog)
+    public function edit($id)
     {
-        return view('blogs.edit', compact('blog'));
+        $blog = DB::table('blogs')->where('id', $id)->first();
+
+        if (!$blog) {
+            abort(404, 'Blog not found');
+        }
+
+        return view('blog.edit', compact('blog'));
     }
 
     // Mengupdate blog berdasarkan ID
-    public function update(Request $request, Blog $blog)
+    public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
 
-        // Tetapkan nilai default untuk user_id
-        $validatedData['user_id'] = Auth::id() ?? null;
+        $blog = Blog::find($id);
 
-        // Simpan data ke database
-        Blog::create($validatedData);
+        if (!$blog) {
+            abort(404, 'Blog not found');
+        }
 
-        return redirect('/blogs')->with('success', 'Blog created successfully!');
+        $blog->update($validatedData);
+
+        return redirect("/blogs/{$id}")->with('success', 'Blog updated successfully!');
     }
 
     // Menghapus blog berdasarkan ID
-    public function destroy(Blog $blog)
+    public function destroy($id)
     {
+        $blog = Blog::find($id);
+
+        if (!$blog) {
+            abort(404, 'Blog not found');
+        }
+
         $blog->delete();
-        return redirect()->route('blogs.index');
+
+        return redirect()->route('blog.index')->with('success', 'Blog deleted successfully!');
     }
 }
